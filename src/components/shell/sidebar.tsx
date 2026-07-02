@@ -46,7 +46,7 @@ export function Sidebar({
 
       <Link
         href="/projects/new"
-        className="flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover"
+        className="flex items-center justify-center gap-2 rounded-md btn-liquid px-4 py-2.5 text-sm font-semibold text-on-primary"
       >
         <Plus size={16} />
         New project

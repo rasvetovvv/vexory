@@ -2,7 +2,7 @@ import { Search } from "lucide-react";
 
 export function Topbar() {
   return (
-    <header className="glass-deep sticky top-0 z-10 rounded-none border-x-0 border-t-0 px-4 py-3 md:px-8">
+    <header className="glass-bar sticky top-0 z-10 px-4 py-3 md:px-8">
       <form action="/search" className="relative max-w-md">
         <Search
           size={16}

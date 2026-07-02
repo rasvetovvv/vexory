@@ -2,10 +2,10 @@
 
 /*
   Vexory design tokens — "Purple Liquid Glass"
-  Source of truth: refer/feed and refer/reg mockups.
-  Deep navy-black canvas, violet primary, glass panels with 1px translucent
-  borders and a top specular highlight. Ambient light lives in large, smooth,
-  dithered fields — never blotchy glows.
+  Source of truth: refer/feed and refer/reg mockups + DESIGN.md.
+  Deep navy-black canvas, violet primary, glass as a material for elevated
+  layers: refractive gradient edges, top specular light, cursor-tracked sheen.
+  Ambient light lives in large, smooth, dithered fields — never blotchy glows.
 */
 @theme {
   /* Canvas & surfaces */
@@ -112,13 +112,16 @@ body {
 
 @layer components {
   /*
-    Liquid glass, two grades:
-    - .glass       — static panels/cards: directional gradient fill + top
-                     specular line; no backdrop-filter (cheap at any count).
-    - .glass-deep  — chrome that floats over content (topbar, hero, auth
-                     card): real backdrop blur + saturation.
+    Liquid glass, three grades:
+    - .glass       — static cards/panels: directional gradient fill, top
+                     specular line, cursor-tracked sheen on hover.
+                     No backdrop-filter (cheap at any count).
+    - .glass-deep  — floating panels (hero, auth card): real backdrop blur,
+                     refractive gradient edge, top glare.
+    - .glass-bar   — sticky chrome (topbar): blur + single bottom edge.
   */
   .glass {
+    position: relative;
     background:
       linear-gradient(
         155deg,
@@ -128,11 +131,33 @@ body {
       );
     border: 1px solid var(--color-border);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(124, 92, 255, 0.04),
       0 1px 2px rgba(0, 0, 0, 0.35);
   }
 
+  /* Cursor-tracked sheen — the reflection sliding across the glass */
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease-out;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, -30%),
+      rgba(255, 255, 255, 0.075),
+      transparent 55%
+    );
+  }
+
+  .glass:hover::after {
+    opacity: 1;
+  }
+
   .glass-deep {
+    position: relative;
     background:
       linear-gradient(
         160deg,
@@ -140,12 +165,99 @@ body {
         rgba(20, 18, 31, 0.55) 40%,
         rgba(124, 92, 255, 0.05) 100%
       );
-    border: 1px solid var(--color-border);
+    border: none;
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.08),
       0 16px 48px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(24px) saturate(150%);
     -webkit-backdrop-filter: blur(24px) saturate(150%);
+  }
+
+  /* Refractive edge — a 1px ring lit from the top-left, violet at the base */
+  .glass-deep::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.05) 28%,
+      rgba(124, 92, 255, 0.2) 62%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Top glare — light hitting the upper face of the panel */
+  .glass-deep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      120% 55% at 50% -10%,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%
+    );
+  }
+
+  .glass-bar {
+    background: rgba(12, 11, 20, 0.55);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+  }
+
+  /* Glossy primary action — lit top face, violet halo on hover */
+  .btn-liquid {
+    background: linear-gradient(180deg, #8f74ff 0%, #7c5cff 55%, #6e4ef5 100%);
+    color: var(--color-on-primary);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+      0 4px 16px rgba(124, 92, 255, 0.25);
+    transition:
+      filter 0.15s ease-out,
+      box-shadow 0.2s ease-out;
+  }
+
+  .btn-liquid:hover:not(:disabled) {
+    filter: brightness(1.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.25),
+      0 6px 24px rgba(124, 92, 255, 0.45);
+  }
+
+  .btn-liquid:active:not(:disabled) {
+    filter: brightness(0.94);
+  }
+}
+
+@layer base {
+  /* Inset depth for form fields — glass you look *into* */
+  :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.35),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.025);
+  }
+
+  :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.35),
+      0 0 0 3px rgba(124, 92, 255, 0.18);
   }
 }
 
@@ -164,4 +276,10 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: #2a2740 transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass::after {
+    transition: none;
+  }
 }

@@ -90,7 +90,7 @@ export function NewProjectForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:opacity-60"
+        className="mt-2 rounded-md btn-liquid px-4 py-2.5 text-sm font-semibold text-on-primary disabled:opacity-60"
       >
         {pending ? "Creating…" : "Create project"}
       </button>

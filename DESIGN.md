@@ -21,13 +21,22 @@ material for elevated layers. Tokens live in `src/app/globals.css` (`@theme`).
 Accent carries actions and state, never decoration. Status colors appear only
 in badges, toasts and status-bearing UI.
 
-## Glass material (two grades)
+## Glass material (three grades + gloss)
 
 - `.glass` — static cards/panels. Directional gradient fill
-  (white 5.5% → 1.8% → violet 3.5% at 155deg), 1px `--color-border`,
-  inset top specular line. **No backdrop-filter** — cheap at any count.
-- `.glass-deep` — floating chrome only (topbar, hero panels, auth card):
-  real `backdrop-filter: blur(24px) saturate(150%)`, stronger shadow.
+  (white 5.5% → 1.8% → violet 3.5% at 155deg), 1px `--color-border`, inset
+  top specular line, and a **cursor-tracked sheen** (`::after` radial light
+  driven by `--mx`/`--my`, fed by `LiquidPointer` in the root layout).
+  **No backdrop-filter** — cheap at any count.
+- `.glass-deep` — floating panels (project/profile hero, auth card):
+  `backdrop-filter: blur(24px) saturate(150%)`, **refractive gradient edge**
+  (masked 1px ring, lit top-left, violet at the base) and a top glare.
+- `.glass-bar` — sticky chrome (topbar): blur 20px + single bottom border.
+- `.btn-liquid` — primary actions: vertical violet gradient (lit top face),
+  inset top highlight, violet halo that intensifies on hover.
+
+Form fields get global inset depth (base layer): dark inner shadow + violet
+outer glow on focus.
 
 Rule: glass marks elevation. Flat lists and forms stay flat. Never nest glass
 inside glass (inner attachments use `bg-surface` + border).

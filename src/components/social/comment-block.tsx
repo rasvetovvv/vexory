@@ -77,7 +77,7 @@ export function CommentBlock({
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:opacity-60"
+              className="rounded-md btn-liquid px-3 py-1.5 text-xs font-semibold text-on-primary disabled:opacity-60"
             >
               Send
             </button>

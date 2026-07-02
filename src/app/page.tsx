@@ -26,7 +26,7 @@ export default async function Home() {
           </Link>
           <Link
             href="/auth"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover"
+            className="rounded-md btn-liquid px-4 py-2 text-sm font-semibold text-on-primary"
           >
             Get started
           </Link>
@@ -49,7 +49,7 @@ export default async function Home() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/auth"
-            className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover"
+            className="rounded-md btn-liquid px-6 py-3 text-sm font-semibold text-on-primary"
           >
             Start building
           </Link>

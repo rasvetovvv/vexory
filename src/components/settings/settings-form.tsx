@@ -166,7 +166,7 @@ export function SettingsForm({ user }: { user: UserData }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-1 self-start rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-primary-hover disabled:opacity-60"
+        className="mt-1 self-start rounded-md btn-liquid px-5 py-2.5 text-sm font-semibold text-on-primary disabled:opacity-60"
       >
         {pending ? "Saving…" : "Save profile"}
       </button>
