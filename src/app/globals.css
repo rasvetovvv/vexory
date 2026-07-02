@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
 /*
-  Vexory design tokens — "Purple Glassmorphism"
+  Vexory design tokens — "Purple Liquid Glass"
   Source of truth: refer/feed and refer/reg mockups.
-  Deep navy-black canvas, violet primary, glass panels with 1px translucent borders.
+  Deep navy-black canvas, violet primary, glass panels with 1px translucent
+  borders and a top specular highlight. Ambient light lives in large, smooth,
+  dithered fields — never blotchy glows.
 */
 @theme {
   /* Canvas & surfaces */
-  --color-background: #08070f;
-  --color-surface: #0e0d17;
+  --color-background: #09080f;
+  --color-surface: #0f0e18;
   --color-surface-raised: #14121f;
   --color-surface-high: #1b1828;
   --color-glass: rgba(255, 255, 255, 0.04);
@@ -16,8 +18,8 @@
 
   /* Borders */
   --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.14);
-  --color-border-primary: rgba(124, 92, 255, 0.45);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-border-primary: rgba(124, 92, 255, 0.5);
 
   /* Brand */
   --color-primary: #7c5cff;
@@ -27,9 +29,9 @@
   --color-accent: #a78bfa;
 
   /* Text */
-  --color-foreground: #ecebf5;
-  --color-muted: #8a87a0;
-  --color-faint: #5b5870;
+  --color-foreground: #eeedf6;
+  --color-muted: #948fad;
+  --color-faint: #64607e;
 
   /* Status */
   --color-success: #34d399;
@@ -52,9 +54,6 @@
   --radius-lg: 0.875rem;
   --radius-xl: 1.25rem;
 
-  /* Glow shadows instead of drop shadows */
-  --shadow-glow-primary: 0 0 0 1px rgba(124, 92, 255, 0.35),
-    0 8px 32px rgba(124, 92, 255, 0.18);
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
@@ -64,19 +63,97 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Ambient violet glow in page corners, as in the reg mockup */
+/*
+  Ambient light field.
+  Two constraints drive this implementation:
+  - low-alpha violet over near-black bands visibly on 8-bit displays, so the
+    gradients are large, low-chroma and close to the bg in lightness;
+  - a fixed grain layer dithers what banding remains.
+*/
 .bg-ambient {
-  background:
-    radial-gradient(600px 400px at 85% -10%, rgba(124, 92, 255, 0.14), transparent 70%),
-    radial-gradient(500px 350px at -10% 100%, rgba(124, 92, 255, 0.1), transparent 70%),
-    var(--color-background);
+  position: relative;
+  isolation: isolate;
 }
 
-/* Frosted glass panel */
-.glass {
-  background: var(--color-glass);
-  border: 1px solid var(--color-border);
-  backdrop-filter: blur(20px);
+.bg-ambient::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      140% 90% at 85% -15%,
+      rgba(124, 92, 255, 0.11) 0%,
+      rgba(124, 92, 255, 0.055) 32%,
+      rgba(124, 92, 255, 0.02) 58%,
+      transparent 78%
+    ),
+    radial-gradient(
+      120% 85% at -10% 108%,
+      rgba(103, 78, 216, 0.09) 0%,
+      rgba(103, 78, 216, 0.04) 35%,
+      rgba(103, 78, 216, 0.015) 60%,
+      transparent 80%
+    );
+}
+
+.bg-ambient::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+@layer components {
+  /*
+    Liquid glass, two grades:
+    - .glass       — static panels/cards: directional gradient fill + top
+                     specular line; no backdrop-filter (cheap at any count).
+    - .glass-deep  — chrome that floats over content (topbar, hero, auth
+                     card): real backdrop blur + saturation.
+  */
+  .glass {
+    background:
+      linear-gradient(
+        155deg,
+        rgba(255, 255, 255, 0.055) 0%,
+        rgba(255, 255, 255, 0.018) 45%,
+        rgba(124, 92, 255, 0.035) 100%
+      );
+    border: 1px solid var(--color-border);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+
+  .glass-deep {
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.06) 0%,
+        rgba(20, 18, 31, 0.55) 40%,
+        rgba(124, 92, 255, 0.05) 100%
+      );
+    border: 1px solid var(--color-border);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 16px 48px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+  }
+}
+
+/* Keyboard focus — visible on glass and flat surfaces alike */
+:focus-visible {
+  outline: 2px solid rgba(124, 92, 255, 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 ::selection {

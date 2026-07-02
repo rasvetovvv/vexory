@@ -33,7 +33,7 @@ export function FeedCard({ event }: { event: FeedEventData }) {
           : null;
 
   return (
-    <article className="glass rounded-xl p-5 transition-colors hover:border-border-strong">
+    <article className="glass rounded-xl p-5 transition-[border-color,box-shadow] duration-200 hover:border-border-strong hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_rgba(0,0,0,0.4)]">
       <div className="flex items-start gap-3">
         <Link href={`/u/${event.actor.username}`}>
           <Avatar name={event.actor.name} image={event.actor.avatar} size={40} />

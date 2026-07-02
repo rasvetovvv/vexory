@@ -40,9 +40,7 @@ export default async function Home() {
         </p>
         <h1 className="mt-6 max-w-2xl text-4xl font-bold leading-tight tracking-tight md:text-6xl">
           Where builders{" "}
-          <span className="bg-gradient-to-r from-[#a78bfa] to-[#7c5cff] bg-clip-text text-transparent">
-            build together
-          </span>
+          <span className="text-accent">build together</span>
         </h1>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted md:text-lg">
           Not another feed of hot takes. Your profile is your projects: what

@@ -36,7 +36,7 @@ export function Sidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-4 border-r border-border p-4 lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-4 border-r border-border bg-gradient-to-b from-white/[0.02] to-transparent p-4 lg:flex">
       <Link href="/feed" className="flex items-center gap-2.5 px-2 py-1.5">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-lg font-bold text-on-primary">
           V

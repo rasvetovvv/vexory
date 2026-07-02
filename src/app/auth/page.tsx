@@ -10,7 +10,7 @@ export default async function AuthPage() {
 
   return (
     <main className="flex min-h-screen flex-1 items-center justify-center p-4 md:p-8">
-      <div className="glass grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-xl lg:grid-cols-[1fr_360px]">
+      <div className="glass-deep grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-xl lg:grid-cols-[1fr_360px]">
         <AuthCard />
         <aside className="hidden flex-col justify-center gap-8 border-l border-border bg-primary-muted/40 p-10 lg:flex">
           <div>

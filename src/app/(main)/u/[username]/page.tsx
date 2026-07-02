@@ -53,7 +53,7 @@ export default async function ProfilePage({
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-8">
       {/* Header */}
-      <section className="glass rounded-xl p-6 md:p-8">
+      <section className="glass-deep rounded-xl p-6 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <Avatar name={user.name} image={user.avatar} size={72} />
