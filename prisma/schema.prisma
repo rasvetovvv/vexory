@@ -1,0 +1,374 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============ Users & Auth ============
+
+enum UserRole {
+  FOUNDER
+  DEVELOPER
+  DESIGNER
+  PRODUCT_MANAGER
+  MARKETER
+  AI_ENGINEER
+  COPYWRITER
+  INVESTOR
+  QA
+  DEVOPS
+  FREELANCER
+  OTHER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  username      String    @unique
+  name          String
+  avatar        String?
+  headline      String?
+  bio           String?
+  roles         UserRole[]
+  skills        String[]
+  openForWork   Boolean   @default(false)
+  location      String?
+  websiteUrl    String?
+  githubUrl     String?
+  twitterUrl    String?
+  linkedinUrl   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  ownedProjects   Project[]         @relation("ProjectOwner")
+  memberships     ProjectMember[]
+  buildLogEntries BuildLogEntry[]
+  applications    RoleApplication[]
+  follows         Follow[]          @relation("Follower")
+  followedBy      Follow[]          @relation("FollowedUser")
+  feedEvents      FeedEvent[]
+  likes           Like[]
+  comments        Comment[]
+  bookmarks       Bookmark[]
+  notifications   Notification[]    @relation("NotificationRecipient")
+  sentNotifications Notification[]  @relation("NotificationActor")
+}
+
+// Auth.js adapter models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============ Projects ============
+
+enum ProjectStatus {
+  IDEA
+  BUILDING
+  MVP_LAUNCHED
+  LAUNCHED
+  PAUSED
+  ACQUIRED
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        String
+  tagline     String
+  description String?
+  logo        String?
+  cover       String?
+  status      ProjectStatus @default(BUILDING)
+  websiteUrl  String?
+  githubUrl   String?
+  tags        String[]
+  ownerId     String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  owner        User              @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members      ProjectMember[]
+  buildLog     BuildLogEntry[]
+  roadmap      RoadmapItem[]
+  openRoles    OpenRole[]
+  followedBy   Follow[]          @relation("FollowedProject")
+  feedEvents   FeedEvent[]
+  bookmarks    Bookmark[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model ProjectMember {
+  id        String     @id @default(cuid())
+  projectId String
+  userId    String
+  title     String // e.g. "Lead Founder / Backend", "Product Designer"
+  role      MemberRole @default(MEMBER)
+  joinedAt  DateTime   @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
+
+// ============ Build Log (human commits) ============
+
+enum BuildLogType {
+  UPDATE
+  MILESTONE
+  LAUNCH
+  FUNDING
+}
+
+model BuildLogEntry {
+  id        String       @id @default(cuid())
+  projectId String
+  authorId  String
+  type      BuildLogType @default(UPDATE)
+  title     String
+  body      String?
+  createdAt DateTime     @default(now())
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author   User      @relation(fields: [authorId], references: [id])
+  likes    Like[]
+  comments Comment[]
+
+  @@index([projectId, createdAt])
+}
+
+// ============ Roadmap ============
+
+enum RoadmapStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+}
+
+model RoadmapItem {
+  id          String        @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  status      RoadmapStatus @default(PLANNED)
+  order       Int           @default(0)
+  createdAt   DateTime      @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, order])
+}
+
+// ============ Open Roles & Applications ============
+
+enum RoleCompensation {
+  EQUITY
+  PAID
+  CONTRACT
+  VOLUNTEER
+}
+
+enum OpenRoleStatus {
+  OPEN
+  FILLED
+  CLOSED
+}
+
+model OpenRole {
+  id           String           @id @default(cuid())
+  projectId    String
+  title        String // e.g. "React Developer"
+  description  String?
+  compensation RoleCompensation @default(EQUITY)
+  remote       Boolean          @default(true)
+  hoursPerWeek Int?
+  status       OpenRoleStatus   @default(OPEN)
+  createdAt    DateTime         @default(now())
+
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  applications RoleApplication[]
+
+  @@index([status, createdAt])
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model RoleApplication {
+  id        String            @id @default(cuid())
+  roleId    String
+  userId    String
+  message   String?
+  status    ApplicationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+
+  role OpenRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, userId])
+}
+
+// ============ Social graph ============
+
+// A follow targets either a user or a project (exactly one is set).
+model Follow {
+  id                String   @id @default(cuid())
+  followerId        String
+  followedUserId    String?
+  followedProjectId String?
+  createdAt         DateTime @default(now())
+
+  follower        User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followedUser    User?    @relation("FollowedUser", fields: [followedUserId], references: [id], onDelete: Cascade)
+  followedProject Project? @relation("FollowedProject", fields: [followedProjectId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedUserId])
+  @@unique([followerId, followedProjectId])
+}
+
+// ============ Feed ============
+
+enum FeedEventType {
+  PROJECT_CREATED
+  BUILD_LOG_POSTED
+  STATUS_CHANGED
+  MVP_LAUNCHED
+  ROLE_OPENED
+  MEMBER_JOINED
+  FUNDING_RAISED
+}
+
+model FeedEvent {
+  id        String        @id @default(cuid())
+  type      FeedEventType
+  actorId   String
+  projectId String
+  // Denormalized payload for fast feed rendering (titles, amounts, role names...)
+  payload   Json?
+  createdAt DateTime      @default(now())
+
+  actor   User    @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([projectId, createdAt])
+}
+
+// ============ Engagement ============
+
+model Like {
+  id              String   @id @default(cuid())
+  userId          String
+  buildLogEntryId String
+  createdAt       DateTime @default(now())
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry BuildLogEntry @relation(fields: [buildLogEntryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, buildLogEntryId])
+}
+
+model Comment {
+  id              String   @id @default(cuid())
+  userId          String
+  buildLogEntryId String
+  body            String
+  createdAt       DateTime @default(now())
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry BuildLogEntry @relation(fields: [buildLogEntryId], references: [id], onDelete: Cascade)
+
+  @@index([buildLogEntryId, createdAt])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+// ============ Notifications ============
+
+enum NotificationType {
+  NEW_FOLLOWER
+  PROJECT_FOLLOWED
+  ROLE_APPLICATION
+  APPLICATION_ACCEPTED
+  COMMENT
+  LIKE
+  MEMBER_INVITED
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  actorId     String?
+  type        NotificationType
+  // Optional references, resolved by type
+  projectId   String?
+  entryId     String?
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  recipient User  @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor     User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId, read, createdAt])
+}
