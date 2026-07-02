@@ -340,3 +340,76 @@ export async function applyToRole(
   revalidatePath(`/p/${role.project.slug}`);
   return undefined;
 }
+
+export async function acceptApplication(applicationId: string) {
+  const userId = await requireUserId();
+  const application = await prisma.roleApplication.findUniqueOrThrow({
+    where: { id: applicationId },
+    include: {
+      role: {
+        include: { project: { select: { id: true, slug: true, name: true } } },
+      },
+    },
+  });
+  const project = application.role.project;
+  await requireMembership(project.id, userId);
+  if (application.status !== "PENDING") return;
+
+  const alreadyMember = await prisma.projectMember.findUnique({
+    where: {
+      projectId_userId: { projectId: project.id, userId: application.userId },
+    },
+  });
+  await prisma.$transaction([
+    prisma.roleApplication.update({
+      where: { id: applicationId },
+      data: { status: "ACCEPTED" },
+    }),
+    ...(alreadyMember
+      ? []
+      : [
+          prisma.projectMember.create({
+            data: {
+              projectId: project.id,
+              userId: application.userId,
+              title: application.role.title,
+            },
+          }),
+        ]),
+    prisma.notification.create({
+      data: {
+        recipientId: application.userId,
+        actorId: userId,
+        type: "APPLICATION_ACCEPTED",
+        projectId: project.id,
+      },
+    }),
+    prisma.feedEvent.create({
+      data: {
+        type: FeedEventType.MEMBER_JOINED,
+        actorId: application.userId,
+        projectId: project.id,
+        payload: { name: project.name, role: application.role.title },
+      },
+    }),
+  ]);
+
+  revalidatePath(`/p/${project.slug}`);
+  revalidatePath("/feed");
+}
+
+export async function rejectApplication(applicationId: string) {
+  const userId = await requireUserId();
+  const application = await prisma.roleApplication.findUniqueOrThrow({
+    where: { id: applicationId },
+    include: { role: { include: { project: { select: { id: true, slug: true } } } } },
+  });
+  await requireMembership(application.role.project.id, userId);
+  if (application.status !== "PENDING") return;
+
+  await prisma.roleApplication.update({
+    where: { id: applicationId },
+    data: { status: "REJECTED" },
+  });
+  revalidatePath(`/p/${application.role.project.slug}`);
+}

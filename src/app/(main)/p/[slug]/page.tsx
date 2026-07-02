@@ -9,6 +9,7 @@ import {
   BookmarkButton,
   FollowProjectButton,
 } from "@/components/social/action-buttons";
+import { ApplicationsSection } from "@/components/project/applications-section";
 import { BuildLogForm } from "@/components/project/build-log-form";
 import { BuildLogList } from "@/components/project/build-log-list";
 import { RoadmapSection } from "@/components/project/roadmap-section";
@@ -61,6 +62,18 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   const isMember = project.members.some((m) => m.userId === userId);
+  const pendingApplications = isMember
+    ? await prisma.roleApplication.findMany({
+        where: { status: "PENDING", role: { projectId: project.id } },
+        include: {
+          user: {
+            select: { name: true, username: true, avatar: true, headline: true },
+          },
+          role: { select: { title: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
   const path = `/p/${project.slug}`;
   const lastUpdate = project.buildLog[0]?.createdAt;
 
@@ -192,6 +205,8 @@ export default async function ProjectPage({
             isMember={isMember}
             currentUserId={userId}
           />
+
+          {isMember && <ApplicationsSection applications={pendingApplications} />}
         </div>
       </div>
     </div>

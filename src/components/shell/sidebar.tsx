@@ -14,6 +14,7 @@ import {
   User,
   Plus,
   LogOut,
+  Settings,
 } from "lucide-react";
 
 const nav = [
@@ -24,6 +25,7 @@ const nav = [
   { href: "/search", label: "Search", icon: Search },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/bookmarks", label: "Bookmarks", icon: Bookmark },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar({
