@@ -9,10 +9,12 @@ import { slugify } from "@/lib/slug";
 import {
   BuildLogType,
   FeedEventType,
+  ProjectOpenTo,
   ProjectStatus,
   RoadmapStatus,
   RoleCompensation,
 } from "@/generated/prisma/enums";
+import { publicBaseUrl } from "@/lib/urls";
 
 async function requireUserId(): Promise<string> {
   const session = await auth();
@@ -98,6 +100,102 @@ export async function createProject(
   redirect(`/p/${project.slug}`);
 }
 
+// ---------- Edit project ----------
+
+const updateProjectSchema = z.object({
+  projectId: z.string().min(1),
+  name: z.string().trim().min(2).max(60),
+  tagline: z.string().trim().min(4).max(140),
+  description: z.string().trim().max(5000).optional(),
+  websiteUrl: z.union([z.literal(""), z.string().trim().url()]).optional(),
+  githubUrl: z.union([z.literal(""), z.string().trim().url()]).optional(),
+  demoUrl: z.union([z.literal(""), z.string().trim().url()]).optional(),
+  tags: z.string().trim().max(200).optional(),
+  notesWhy: z.string().trim().max(1000).optional(),
+  notesProblem: z.string().trim().max(1000).optional(),
+  notesLearned: z.string().trim().max(1000).optional(),
+});
+
+export async function updateProjectDetails(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const userId = await requireUserId();
+  const parsed = updateProjectSchema.safeParse(
+    Object.fromEntries(formData.entries()),
+  );
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+  // Checkbox group: getAll, not Object.fromEntries (which keeps one value).
+  const openToParsed = z
+    .array(z.enum(ProjectOpenTo))
+    .safeParse(formData.getAll("openTo").map(String));
+  if (!openToParsed.success) return { error: "Invalid open-to selection" };
+  const {
+    projectId,
+    name,
+    tagline,
+    description,
+    websiteUrl,
+    githubUrl,
+    demoUrl,
+    tags,
+    notesWhy,
+    notesProblem,
+    notesLearned,
+  } = parsed.data;
+  const member = await requireMembership(projectId, userId);
+  if (!["OWNER", "ADMIN"].includes(member.role)) {
+    return { error: "Only project admins can edit the project" };
+  }
+
+  const project = await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      name,
+      tagline,
+      description: description || null,
+      websiteUrl: websiteUrl || null,
+      githubUrl: githubUrl || null,
+      demoUrl: demoUrl || null,
+      openTo: openToParsed.data,
+      notesWhy: notesWhy || null,
+      notesProblem: notesProblem || null,
+      notesLearned: notesLearned || null,
+      tags: tags
+        ? tags
+            .split(",")
+            .map((t) => slugify(t))
+            .filter(Boolean)
+            .slice(0, 8)
+        : [],
+    },
+  });
+
+  revalidatePath(`/p/${project.slug}`);
+  revalidatePath(`/showcase/${project.slug}`);
+  revalidatePath("/projects");
+  redirect(`/p/${project.slug}`);
+}
+
+export async function deleteProject(formData: FormData) {
+  const userId = await requireUserId();
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectId) return;
+
+  const project = await prisma.project.findUniqueOrThrow({
+    where: { id: projectId },
+    select: { ownerId: true, slug: true },
+  });
+  if (project.ownerId !== userId) return;
+
+  await prisma.project.delete({ where: { id: projectId } });
+  revalidatePath("/projects");
+  revalidatePath("/feed");
+  redirect("/projects");
+}
+
 // ---------- Update status ----------
 
 export async function updateProjectStatus(projectId: string, status: string) {
@@ -133,7 +231,24 @@ const buildLogSchema = z.object({
   type: z.enum(BuildLogType),
   title: z.string().trim().min(2).max(140),
   body: z.string().trim().max(2000).optional(),
+  proof: z.string().trim().max(1000).optional(),
 });
+
+// Build proof: free-form field, keep whatever parses as http(s) URLs.
+function parseProofUrls(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[\s,]+/)
+    .filter((part) => {
+      try {
+        const url = new URL(part);
+        return url.protocol === "http:" || url.protocol === "https:";
+      } catch {
+        return false;
+      }
+    })
+    .slice(0, 4);
+}
 
 export async function postBuildLog(
   _prev: ActionState,
@@ -144,7 +259,7 @@ export async function postBuildLog(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
-  const { projectId, type, title, body } = parsed.data;
+  const { projectId, type, title, body, proof } = parsed.data;
   await requireMembership(projectId, userId);
 
   const project = await prisma.project.findUniqueOrThrow({
@@ -153,7 +268,14 @@ export async function postBuildLog(
   });
 
   await prisma.buildLogEntry.create({
-    data: { projectId, authorId: userId, type, title, body: body || null },
+    data: {
+      projectId,
+      authorId: userId,
+      type,
+      title,
+      body: body || null,
+      proofUrls: parseProofUrls(proof),
+    },
   });
   await prisma.feedEvent.create({
     data: {
@@ -172,6 +294,21 @@ export async function postBuildLog(
   revalidatePath(`/p/${project.slug}`);
   revalidatePath("/feed");
   return undefined;
+}
+
+export async function deleteBuildLogEntry(entryId: string) {
+  const userId = await requireUserId();
+  const entry = await prisma.buildLogEntry.findUniqueOrThrow({
+    where: { id: entryId },
+    include: { project: { select: { id: true, slug: true } } },
+  });
+  const member = await requireMembership(entry.project.id, userId);
+  const canDelete =
+    entry.authorId === userId || ["OWNER", "ADMIN"].includes(member.role);
+  if (!canDelete) return;
+
+  await prisma.buildLogEntry.delete({ where: { id: entryId } });
+  revalidatePath(`/p/${entry.project.slug}`);
 }
 
 // ---------- Roadmap ----------
@@ -324,11 +461,21 @@ export async function applyToRole(
   const existing = await prisma.roleApplication.findUnique({
     where: { roleId_userId: { roleId, userId } },
   });
-  if (existing) return { error: "You already applied to this role" };
+  if (existing && existing.status !== "WITHDRAWN") {
+    return { error: "You already applied to this role" };
+  }
 
-  await prisma.roleApplication.create({
-    data: { roleId, userId, message: message || null },
-  });
+  if (existing) {
+    // Re-applying after a withdrawal revives the old application.
+    await prisma.roleApplication.update({
+      where: { id: existing.id },
+      data: { status: "PENDING", message: message || null, createdAt: new Date() },
+    });
+  } else {
+    await prisma.roleApplication.create({
+      data: { roleId, userId, message: message || null },
+    });
+  }
   await prisma.notification.create({
     data: {
       recipientId: role.project.ownerId,
@@ -339,6 +486,23 @@ export async function applyToRole(
   });
   revalidatePath(`/p/${role.project.slug}`);
   return undefined;
+}
+
+export async function withdrawApplication(applicationId: string) {
+  const userId = await requireUserId();
+  const application = await prisma.roleApplication.findUniqueOrThrow({
+    where: { id: applicationId },
+    include: { role: { include: { project: { select: { slug: true } } } } },
+  });
+  if (application.userId !== userId) return;
+  if (application.status !== "PENDING") return;
+
+  await prisma.roleApplication.update({
+    where: { id: applicationId },
+    data: { status: "WITHDRAWN" },
+  });
+  revalidatePath("/roles");
+  revalidatePath(`/p/${application.role.project.slug}`);
 }
 
 export async function acceptApplication(applicationId: string) {
@@ -412,4 +576,238 @@ export async function rejectApplication(applicationId: string) {
     data: { status: "REJECTED" },
   });
   revalidatePath(`/p/${application.role.project.slug}`);
+}
+
+// ---------- Project invites ----------
+
+export type InviteActionState = { error?: string; inviteUrl?: string } | undefined;
+
+const inviteSchema = z.object({
+  projectId: z.string().min(1),
+  emailOrUsername: z.string().trim().max(120).optional(),
+  title: z.string().trim().min(2).max(80),
+  role: z.enum(["ADMIN", "MEMBER"]),
+});
+
+async function requireProjectAdmin(projectId: string, userId: string) {
+  const member = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId } },
+  });
+  if (!member || !["OWNER", "ADMIN"].includes(member.role)) {
+    throw new Error("Only project admins can manage invites");
+  }
+  return member;
+}
+
+export async function createProjectInvite(
+  _prev: InviteActionState,
+  formData: FormData,
+): Promise<InviteActionState> {
+  const userId = await requireUserId();
+  const parsed = inviteSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid invite" };
+  }
+  const { projectId, emailOrUsername, title, role } = parsed.data;
+  await requireProjectAdmin(projectId, userId);
+
+  const project = await prisma.project.findUniqueOrThrow({
+    where: { id: projectId },
+    select: { slug: true, name: true },
+  });
+
+  const target = (emailOrUsername ?? "").trim().replace(/^@/, "").toLowerCase();
+  const recipient = target
+    ? await prisma.user.findFirst({
+        where: target.includes("@") ? { email: target } : { username: target },
+        select: { id: true, email: true },
+      })
+    : null;
+
+  const invite = await prisma.projectInvite.create({
+    data: {
+      projectId,
+      senderId: userId,
+      recipientId: recipient?.id ?? null,
+      email: recipient ? recipient.email : target.includes("@") ? target : null,
+      title,
+      role,
+      token: crypto.randomUUID().replaceAll("-", ""),
+      expiresAt: new Date(Date.now() + 14 * 24 * 3600 * 1000),
+    },
+  });
+
+  if (recipient?.id) {
+    await prisma.notification.create({
+      data: {
+        recipientId: recipient.id,
+        actorId: userId,
+        type: "MEMBER_INVITED",
+        projectId,
+      },
+    });
+  }
+
+  revalidatePath(`/p/${project.slug}`);
+  revalidatePath("/notifications");
+  return { inviteUrl: `${publicBaseUrl()}/invite/${invite.token}` };
+}
+
+export async function revokeProjectInvite(inviteId: string) {
+  const userId = await requireUserId();
+  const invite = await prisma.projectInvite.findUniqueOrThrow({
+    where: { id: inviteId },
+    include: { project: { select: { id: true, slug: true } } },
+  });
+  await requireProjectAdmin(invite.project.id, userId);
+  await prisma.projectInvite.update({
+    where: { id: inviteId },
+    data: { status: "REVOKED" },
+  });
+  revalidatePath(`/p/${invite.project.slug}`);
+}
+
+export async function acceptProjectInvite(token: string) {
+  const userId = await requireUserId();
+  const invite = await prisma.projectInvite.findUniqueOrThrow({
+    where: { token },
+    include: { project: { select: { id: true, slug: true, name: true } } },
+  });
+  if (invite.status !== "PENDING") return;
+  if (invite.expiresAt && invite.expiresAt < new Date()) return;
+  if (invite.recipientId && invite.recipientId !== userId) return;
+
+  const alreadyMember = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId: invite.projectId, userId } },
+  });
+
+  await prisma.$transaction([
+    prisma.projectInvite.update({
+      where: { id: invite.id },
+      data: { status: "ACCEPTED", recipientId: userId },
+    }),
+    ...(alreadyMember
+      ? []
+      : [
+          prisma.projectMember.create({
+            data: {
+              projectId: invite.projectId,
+              userId,
+              title: invite.title,
+              role: invite.role,
+            },
+          }),
+        ]),
+    prisma.feedEvent.create({
+      data: {
+        type: FeedEventType.MEMBER_JOINED,
+        actorId: userId,
+        projectId: invite.projectId,
+        payload: { name: invite.project.name, role: invite.title },
+      },
+    }),
+  ]);
+
+  revalidatePath(`/p/${invite.project.slug}`);
+  revalidatePath("/feed");
+  redirect(`/p/${invite.project.slug}`);
+}
+
+export async function declineProjectInvite(token: string) {
+  const userId = await requireUserId();
+  const invite = await prisma.projectInvite.findUniqueOrThrow({
+    where: { token },
+    include: { project: { select: { slug: true } } },
+  });
+  if (invite.recipientId && invite.recipientId !== userId) return;
+  await prisma.projectInvite.update({
+    where: { id: invite.id },
+    data: { status: "DECLINED" },
+  });
+  revalidatePath(`/p/${invite.project.slug}`);
+}
+
+// ---------- Team management ----------
+
+export async function removeProjectMember(formData: FormData) {
+  const userId = await requireUserId();
+  const projectId = String(formData.get("projectId") ?? "");
+  const memberUserId = String(formData.get("memberUserId") ?? "");
+  if (!projectId || !memberUserId || memberUserId === userId) return;
+
+  const [actor, target, project] = await Promise.all([
+    prisma.projectMember.findUnique({
+      where: { projectId_userId: { projectId, userId } },
+    }),
+    prisma.projectMember.findUnique({
+      where: { projectId_userId: { projectId, userId: memberUserId } },
+    }),
+    prisma.project.findUniqueOrThrow({
+      where: { id: projectId },
+      select: { slug: true },
+    }),
+  ]);
+  if (!actor || !target) return;
+  // The owner can remove anyone; admins can remove plain members only.
+  if (target.role === "OWNER") return;
+  const allowed =
+    actor.role === "OWNER" || (actor.role === "ADMIN" && target.role === "MEMBER");
+  if (!allowed) return;
+
+  await prisma.projectMember.delete({
+    where: { projectId_userId: { projectId, userId: memberUserId } },
+  });
+  revalidatePath(`/p/${project.slug}`);
+  revalidatePath(`/p/${project.slug}/chat`);
+}
+
+export async function leaveProject(formData: FormData) {
+  const userId = await requireUserId();
+  const projectId = String(formData.get("projectId") ?? "");
+  if (!projectId) return;
+
+  const [membership, project] = await Promise.all([
+    prisma.projectMember.findUnique({
+      where: { projectId_userId: { projectId, userId } },
+    }),
+    prisma.project.findUniqueOrThrow({
+      where: { id: projectId },
+      select: { slug: true },
+    }),
+  ]);
+  // The owner cannot leave: transfer ownership first.
+  if (!membership || membership.role === "OWNER") return;
+
+  await prisma.projectMember.delete({
+    where: { projectId_userId: { projectId, userId } },
+  });
+  revalidatePath(`/p/${project.slug}`);
+  redirect(`/p/${project.slug}`);
+}
+
+export async function transferProjectOwnership(formData: FormData) {
+  const userId = await requireUserId();
+  const projectId = String(formData.get("projectId") ?? "");
+  const newOwnerId = String(formData.get("newOwnerId") ?? "");
+  if (!projectId || !newOwnerId || newOwnerId === userId) return;
+
+  const [project, ownerMembership, newOwnerMembership] = await Promise.all([
+    prisma.project.findUniqueOrThrow({ where: { id: projectId }, select: { slug: true, ownerId: true } }),
+    prisma.projectMember.findUnique({ where: { projectId_userId: { projectId, userId } } }),
+    prisma.projectMember.findUnique({ where: { projectId_userId: { projectId, userId: newOwnerId } } }),
+  ]);
+  if (project.ownerId !== userId || ownerMembership?.role !== "OWNER" || !newOwnerMembership) return;
+
+  await prisma.$transaction([
+    prisma.project.update({ where: { id: projectId }, data: { ownerId: newOwnerId } }),
+    prisma.projectMember.update({
+      where: { projectId_userId: { projectId, userId } },
+      data: { role: "ADMIN" },
+    }),
+    prisma.projectMember.update({
+      where: { projectId_userId: { projectId, userId: newOwnerId } },
+      data: { role: "OWNER" },
+    }),
+  ]);
+  revalidatePath(`/p/${project.slug}`);
 }

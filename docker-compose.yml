@@ -1,22 +1,61 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: vexory
       POSTGRES_PASSWORD: vexory_dev
       POSTGRES_DB: vexory
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vexory -d vexory"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    restart: unless-stopped
     volumes:
       - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      DATABASE_URL: postgresql://vexory:vexory_dev@postgres:5432/vexory
+      AUTH_URL: https://network.vexory.xyz
+      NEXTAUTH_URL: https://network.vexory.xyz
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - hosting_default
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
 
 volumes:
   pgdata:
   redisdata:
+
+networks:
+  hosting_default:
+    external: true

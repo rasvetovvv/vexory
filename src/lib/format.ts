@@ -42,3 +42,14 @@ export const compensationLabels: Record<string, string> = {
   CONTRACT: "Contract",
   VOLUNTEER: "Volunteer",
 };
+
+export const openToLabels: Record<string, string> = {
+  COLLABORATE: "Open to collaborate",
+  INVESTMENT: "Open for investment",
+  BETA_USERS: "Open for beta users",
+  CONTRIBUTORS: "Open for contributors",
+};
+
+export function shortDate(date: Date): string {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}

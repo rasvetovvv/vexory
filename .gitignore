@@ -42,3 +42,12 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# internal working docs & tooling (kept local, not part of the repo)
+AGENTS.md
+CLAUDE.md
+DESIGN.md
+PRODUCT.md
+.claude/
+.playwright-mcp/
+asdsa.txt

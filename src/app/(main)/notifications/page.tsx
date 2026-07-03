@@ -18,6 +18,12 @@ const messages: Record<string, string> = {
   MEMBER_INVITED: "invited you to a project",
 };
 
+function notificationText(type: string, postId: string | null) {
+  if (postId && type === "LIKE") return "liked your post";
+  if (postId && type === "COMMENT") return "commented on your post";
+  return messages[type] ?? type;
+}
+
 export default async function NotificationsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/auth");
@@ -83,7 +89,7 @@ export default async function NotificationsPage() {
                     {n.actor.name}
                   </Link>
                 )}{" "}
-                <span className="text-muted">{messages[n.type] ?? n.type}</span>
+                <span className="text-muted">{notificationText(n.type, n.postId)}</span>
                 {project && (
                   <>
                     {" "}

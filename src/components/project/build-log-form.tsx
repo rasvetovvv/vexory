@@ -58,6 +58,12 @@ export function BuildLogForm({ projectId }: { projectId: string }) {
         placeholder="Details (optional)"
         className="rounded-md border border-border bg-surface px-3.5 py-2 text-sm outline-none placeholder:text-faint focus:border-border-primary"
       />
+      <input
+        name="proof"
+        maxLength={1000}
+        placeholder="Proof links — commit, demo, deploy… (optional, space-separated)"
+        className="rounded-md border border-border bg-surface px-3.5 py-2 text-sm outline-none placeholder:text-faint focus:border-border-primary"
+      />
       <button
         type="submit"
         disabled={pending}

@@ -6,7 +6,22 @@ import { prisma } from "@/lib/db";
 import { Avatar } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/badges";
 import { FollowUserButton } from "@/components/social/action-buttons";
+import { PostCard } from "@/components/feed/post-card";
 import { roleLabels } from "@/lib/format";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
+  const { username } = await params;
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: { name: true, headline: true },
+  });
+  if (!user) return { title: "Profile" };
+  return { title: user.name, description: user.headline ?? undefined };
+}
 
 export default async function ProfilePage({
   params,
@@ -43,12 +58,35 @@ export default async function ProfilePage({
   });
   if (!user) notFound();
 
+  const recentPosts = await prisma.post.findMany({
+    where: { authorId: user.id },
+    include: {
+      author: {
+        select: { name: true, username: true, avatar: true, headline: true },
+      },
+      project: { select: { name: true, slug: true } },
+      likes: { select: { userId: true } },
+      comments: {
+        include: {
+          user: { select: { name: true, username: true, avatar: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
   const isSelf = user.id === viewerId;
   const projects = user.memberships.map((m) => m.project);
-  const launched = projects.filter(
-    (p) => p.status === "LAUNCHED" || p.status === "MVP_LAUNCHED",
-  ).length;
-  const building = projects.filter((p) => p.status === "BUILDING");
+  // Auto-portfolio: the profile assembles itself from real project work.
+  const launchedProjects = projects.filter((p) =>
+    ["LAUNCHED", "MVP_LAUNCHED", "ACQUIRED"].includes(p.status),
+  );
+  const building = projects.filter(
+    (p) => p.status === "BUILDING" || p.status === "IDEA",
+  );
+  const launched = launchedProjects.length;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-8">
@@ -130,20 +168,40 @@ export default async function ProfilePage({
         <Stat label="Skills" value={user.skills.length} />
       </section>
 
-      {building.length > 0 && (
-        <section>
-          <h2 className="mb-3 text-lg font-semibold">🔥 Currently building</h2>
-          <div className="flex flex-wrap gap-2">
-            {building.map((p) => (
-              <Link
-                key={p.id}
-                href={`/p/${p.slug}`}
-                className="rounded-full border border-border bg-glass px-3.5 py-1.5 text-sm transition-colors hover:border-border-primary"
-              >
-                {p.name}
-              </Link>
-            ))}
-          </div>
+      {(building.length > 0 || launchedProjects.length > 0) && (
+        <section className="flex flex-col gap-5">
+          {building.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-lg font-semibold">🔥 Currently building</h2>
+              <div className="flex flex-wrap gap-2">
+                {building.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/p/${p.slug}`}
+                    className="rounded-full border border-border bg-glass px-3.5 py-1.5 text-sm transition-colors hover:border-border-primary"
+                  >
+                    {p.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {launchedProjects.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-lg font-semibold">🚀 Launched</h2>
+              <div className="flex flex-wrap gap-2">
+                {launchedProjects.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/p/${p.slug}`}
+                    className="rounded-full border border-success/30 bg-success-muted px-3.5 py-1.5 text-sm text-success transition-colors hover:border-success/60"
+                  >
+                    {p.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -174,6 +232,22 @@ export default async function ProfilePage({
           )}
         </div>
       </section>
+
+      {recentPosts.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-lg font-semibold">Recent posts</h2>
+          <div className="flex flex-col gap-3">
+            {recentPosts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUserId={viewerId}
+                path={`/u/${user.username}`}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {user.skills.length > 0 && (
         <section>

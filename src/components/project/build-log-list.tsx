@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Rocket, Flag, DollarSign, Wrench } from "lucide-react";
+import { Link2, Rocket, Flag, DollarSign, Wrench, Trash2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { LikeButton } from "@/components/social/action-buttons";
 import { CommentBlock } from "@/components/social/comment-block";
+import { deleteBuildLogEntry } from "@/lib/actions/projects";
 import { timeAgo } from "@/lib/format";
 
 export type BuildLogEntryData = {
@@ -10,12 +11,15 @@ export type BuildLogEntryData = {
   type: string;
   title: string;
   body: string | null;
+  proofUrls: string[];
   createdAt: Date;
+  authorId: string;
   author: { name: string; username: string; avatar: string | null };
   likes: { userId: string }[];
   comments: {
     id: string;
     body: string;
+    userId: string;
     createdAt: Date;
     user: { name: string; username: string; avatar: string | null };
   }[];
@@ -38,10 +42,12 @@ const typeStyles: Record<string, string> = {
 export function BuildLogList({
   entries,
   currentUserId,
+  canModerate = false,
   path,
 }: {
   entries: BuildLogEntryData[];
   currentUserId: string;
+  canModerate?: boolean;
   path: string;
 }) {
   if (entries.length === 0) {
@@ -71,9 +77,41 @@ export function BuildLogList({
               <Avatar name={entry.author.name} image={entry.author.avatar} size={16} />
               {entry.author.name}
             </Link>
+            {(entry.authorId === currentUserId || canModerate) && (
+              <form
+                action={deleteBuildLogEntry.bind(null, entry.id)}
+                className="ml-auto"
+              >
+                <button
+                  type="submit"
+                  title="Delete update"
+                  className="rounded-md p-1 text-faint transition-colors hover:text-danger"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </form>
+            )}
           </div>
           <p className="mt-1.5 text-sm font-medium">{entry.title}</p>
           {entry.body && <p className="mt-1 text-sm text-muted">{entry.body}</p>}
+          {entry.proofUrls.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {entry.proofUrls.map((url) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex max-w-full items-center gap-1 rounded-full border border-border bg-glass px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-accent transition-colors hover:border-border-primary"
+                >
+                  <Link2 size={11} className="shrink-0" />
+                  <span className="truncate normal-case tracking-normal">
+                    {new URL(url).hostname.replace(/^www\./, "")}
+                  </span>
+                </a>
+              ))}
+            </div>
+          )}
           <div className="mt-2 flex items-center gap-2">
             <LikeButton
               entryId={entry.id}
@@ -81,7 +119,14 @@ export function BuildLogList({
               count={entry.likes.length}
               path={path}
             />
-            <CommentBlock entry={entry} path={path} />
+            <CommentBlock
+              targetKind="entry"
+              targetId={entry.id}
+              comments={entry.comments}
+              currentUserId={currentUserId}
+              canModerate={canModerate}
+              path={path}
+            />
           </div>
         </li>
       ))}

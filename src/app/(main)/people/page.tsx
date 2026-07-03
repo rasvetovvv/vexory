@@ -47,7 +47,7 @@ export default async function PeoplePage({
     <div className="mx-auto max-w-4xl">
       <h1 className="text-2xl font-semibold tracking-tight">People</h1>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="chip-row mt-4">
         <FilterChip href="/people" active={!role && open !== "1"}>
           All
         </FilterChip>
@@ -110,7 +110,7 @@ function FilterChip({
   return (
     <Link
       href={href}
-      className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+      className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
         active
           ? "bg-primary text-on-primary"
           : "border border-border bg-glass text-muted hover:text-foreground"

@@ -57,10 +57,21 @@
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
+/* Dark-only product: native controls, scrollbars and top-layer dialogs
+   must not fall back to the UA's light defaults. */
+:root {
+  color-scheme: dark;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
+}
+
+/* <dialog> does not inherit body color — UA gives it CanvasText. */
+dialog {
+  color: var(--color-foreground);
 }
 
 /*
@@ -111,6 +122,29 @@ body {
 }
 
 @layer components {
+  /*
+    Filter chip rows: a single scrollable line on small screens (no visible
+    scrollbar), wrapping normally from md up.
+  */
+  .chip-row {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .chip-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .chip-row {
+      flex-wrap: wrap;
+      overflow-x: visible;
+    }
+  }
+
   /*
     Liquid glass, three grades:
     - .glass       — static cards/panels: directional gradient fill, top
@@ -268,18 +302,92 @@ body {
   border-radius: 4px;
 }
 
+/* …except the palette input: the open panel itself is the focus context */
+dialog.palette input:focus-visible {
+  outline: none;
+}
+
 ::selection {
   background: rgba(124, 92, 255, 0.35);
 }
 
-/* Thin dark scrollbars */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #2a2740 transparent;
+/* Thin dark scrollbars (inside @layer base so components can override) */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2740 transparent;
+  }
+}
+
+/* Route-transition skeletons */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.045) 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.045) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Command palette (⌘K) — slides down from the top edge */
+dialog.palette[open] {
+  animation: palette-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+  The palette panel: backdrop-filter is unreliable on children of top-layer
+  dialogs (Chromium samples only the ::backdrop), so unlike other .glass-deep
+  panels this one gets a near-opaque base to stay readable over any page.
+*/
+.palette-panel {
+  background:
+    linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(20, 18, 31, 0.4) 40%,
+      rgba(124, 92, 255, 0.05) 100%
+    ),
+    #100e1a;
+}
+
+dialog.palette::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .glass::after {
     transition: none;
+  }
+
+  .skeleton {
+    animation: none;
+  }
+
+  dialog.palette[open] {
+    animation: none;
   }
 }

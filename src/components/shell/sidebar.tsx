@@ -9,6 +9,7 @@ import {
   Search,
   Users,
   Briefcase,
+  Sparkles,
   Bell,
   Bookmark,
   User,
@@ -21,6 +22,7 @@ const nav = [
   { href: "/feed", label: "Feed", icon: Home },
   { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/people", label: "People", icon: Users },
+  { href: "/matches", label: "Matches", icon: Sparkles },
   { href: "/roles", label: "Open Roles", icon: Briefcase },
   { href: "/search", label: "Search", icon: Search },
   { href: "/notifications", label: "Notifications", icon: Bell },
@@ -28,10 +30,21 @@ const nav = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
+export function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 font-mono text-[10px] font-bold text-on-primary">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 export function Sidebar({
   user,
+  unreadCount = 0,
 }: {
   user: { name: string; username: string; image: string | null };
+  unreadCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -66,7 +79,8 @@ export function Sidebar({
               }`}
             >
               <Icon size={18} />
-              {label}
+              <span className="flex-1">{label}</span>
+              {href === "/notifications" && <UnreadBadge count={unreadCount} />}
             </Link>
           );
         })}

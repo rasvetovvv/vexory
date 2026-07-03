@@ -14,12 +14,28 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://network.vexory.xyz"),
   title: {
     default: "Vexory — build products together",
     template: "%s · Vexory",
   },
   description:
     "Project-first social network for builders. Share what you're building, find your team, follow real progress.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "Vexory",
+    url: "https://network.vexory.xyz",
+    title: "Vexory — build products together",
+    description:
+      "Project-first social network for builders. Share what you're building, find your team, follow real progress.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vexory — build products together",
+    description:
+      "Project-first social network for builders. Share what you're building, find your team, follow real progress.",
+  },
 };
 
 export default function RootLayout({

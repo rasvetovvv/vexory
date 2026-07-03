@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FolderKanban, Users, Rocket, Radar } from "lucide-react";
+import { FolderKanban, Users, Rocket, Radar, Activity } from "lucide-react";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
 
 export default async function Home() {
   const session = await auth();
   if (session?.user) redirect("/feed");
+  const [projectCount, builderCount, openRoleCount, updateCount] = await Promise.all([
+    prisma.project.count(),
+    prisma.user.count(),
+    prisma.openRole.count({ where: { status: "OPEN" } }),
+    prisma.feedEvent.count(),
+  ]);
 
   return (
     <main className="flex flex-1 flex-col">
@@ -54,7 +61,7 @@ export default async function Home() {
             Start building
           </Link>
           <Link
-            href="/auth"
+            href="/explore"
             className="rounded-md border border-border bg-glass px-6 py-3 text-sm font-semibold transition-colors hover:bg-glass-hover"
           >
             Explore projects
@@ -62,8 +69,15 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-3 px-6 pb-16 md:grid-cols-4">
+        <LiveMetric label="Projects" value={projectCount} />
+        <LiveMetric label="Builders" value={builderCount} />
+        <LiveMetric label="Open roles" value={openRoleCount} />
+        <LiveMetric label="Build events" value={updateCount} />
+      </section>
+
       {/* Features */}
-      <section className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 px-6 pb-24 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 px-6 pb-16 sm:grid-cols-2 lg:grid-cols-4">
         <Feature
           icon={<FolderKanban size={20} />}
           title="Projects, not posts"
@@ -86,6 +100,34 @@ export default async function Home() {
         />
       </section>
 
+      <section className="mx-auto w-full max-w-5xl px-6 pb-24">
+        <div className="glass-deep overflow-hidden rounded-2xl p-6 md:p-8">
+          <p className="font-mono text-[11px] font-bold uppercase tracking-widest text-accent">
+            New public explore
+          </p>
+          <div className="mt-4 grid gap-6 md:grid-cols-[1fr_280px] md:items-center">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Browse launches before you sign up
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                Public showcase pages now expose team, roadmap, open roles and launch-readiness signals — enough to understand whether a project is real before joining the network.
+              </p>
+            </div>
+            <Link
+              href="/explore"
+              className="rounded-xl border border-border bg-surface p-5 transition-colors hover:border-border-primary"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-muted text-accent">
+                <Activity size={20} />
+              </span>
+              <span className="mt-4 block text-sm font-semibold">Open live explorer →</span>
+              <span className="mt-1 block text-xs text-muted">Projects, roles, launches and network pulse.</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-border px-6 py-6">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between font-mono text-[11px] uppercase tracking-wider text-faint">
           <span>© 2026 Vexory</span>
@@ -93,6 +135,15 @@ export default async function Home() {
         </div>
       </footer>
     </main>
+  );
+}
+
+function LiveMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="glass rounded-xl p-4 text-center">
+      <p className="font-mono text-2xl font-bold text-accent">{value}</p>
+      <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-faint">{label}</p>
+    </div>
   );
 }
 

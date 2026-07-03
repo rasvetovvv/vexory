@@ -58,10 +58,16 @@ export async function updateProfile(
   }
   const data = parsed.data;
 
-  const usernameTaken = await prisma.user.findFirst({
-    where: { username: data.username, id: { not: userId } },
-    select: { id: true },
-  });
+  const [usernameTaken, current] = await Promise.all([
+    prisma.user.findFirst({
+      where: { username: data.username, id: { not: userId } },
+      select: { id: true },
+    }),
+    prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { username: true },
+    }),
+  ]);
   if (usernameTaken) return { error: "This username is already taken" };
 
   const roles = formData
@@ -114,5 +120,10 @@ export async function updateProfile(
 
   revalidatePath("/settings");
   revalidatePath(`/u/${data.username}`);
+  if (current.username !== data.username) {
+    revalidatePath(`/u/${current.username}`);
+  }
+  // Sidebar identity comes from the main layout, refresh it too.
+  revalidatePath("/", "layout");
   return { saved: true };
 }

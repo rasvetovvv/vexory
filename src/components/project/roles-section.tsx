@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { CompensationBadge } from "@/components/ui/badges";
-import { openRole, closeRole, applyToRole } from "@/lib/actions/projects";
+import { openRole, closeRole } from "@/lib/actions/projects";
+import { ApplyRoleForm } from "@/components/project/apply-role-form";
 import { compensationLabels } from "@/lib/format";
 
 type Role = {
@@ -70,27 +71,7 @@ export function RolesSection({
                       ✓ Application sent
                     </p>
                   ) : (
-                    <form
-                      action={async (formData: FormData) => {
-                        "use server";
-                        await applyToRole(undefined, formData);
-                      }}
-                      className="flex gap-2"
-                    >
-                      <input type="hidden" name="roleId" value={role.id} />
-                      <input
-                        name="message"
-                        maxLength={1000}
-                        placeholder="Short intro (optional)"
-                        className="flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-xs outline-none placeholder:text-faint focus:border-border-primary"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-md btn-liquid px-3.5 py-1.5 text-xs font-semibold text-on-primary"
-                      >
-                        Apply
-                      </button>
-                    </form>
+                    <ApplyRoleForm roleId={role.id} />
                   )}
                 </div>
               )}

@@ -197,7 +197,7 @@ function SignUpForm() {
     if (signInRes?.error) {
       setError("Account created — please sign in");
     } else {
-      router.push("/feed");
+      router.push("/onboarding");
       router.refresh();
     }
   }
