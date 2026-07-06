@@ -1,62 +1,95 @@
-<div align="center">
+<p align="center">
+  <img src=".github/assets/logo.png" alt="Vexory logo" width="96" />
+</p>
 
-<img src=".github/assets/banner.png" alt="Vexory - the project-first social network for builders" width="100%" />
+<h1 align="center">Vexory</h1>
 
-# Vexory
+<p align="center">
+  <strong>The project-first social network for builders.</strong>
+</p>
 
-**The project-first social network for builders.**
+<p align="center">
+  Build in public, find teammates, follow real progress, and turn every project
+  into a living portfolio.
+</p>
 
-Not another feed of hot takes. Your profile is your projects: what you're
-building, who you need, and the real progress behind it.
+<p align="center">
+  <a href="https://network.vexory.xyz/">
+    <img src="https://img.shields.io/badge/Live%20Beta-network.vexory.xyz-7c5cff?style=for-the-badge" alt="Live beta" />
+  </a>
+  <a href="#beta-notice">
+    <img src="https://img.shields.io/badge/Status-Public%20Beta-fbbf24?style=for-the-badge" alt="Public beta" />
+  </a>
+  <a href="https://nextjs.org/">
+    <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs" alt="Next.js 16" />
+  </a>
+  <a href="#license">
+    <img src="https://img.shields.io/badge/License-Proprietary-64607e?style=for-the-badge" alt="License" />
+  </a>
+</p>
 
-[![Live Beta](https://img.shields.io/badge/Live-network.vexory.xyz-7c5cff?style=for-the-badge)](https://network.vexory.xyz/)
-[![Status](https://img.shields.io/badge/Status-Public%20Beta-fbbf24?style=for-the-badge)](#beta-notice)
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org/)
-[![License](https://img.shields.io/badge/License-Proprietary-64607e?style=for-the-badge)](#license)
+<p align="center">
+  <a href="https://network.vexory.xyz/"><strong>Open the beta</strong></a>
+  &nbsp;|&nbsp;
+  <a href="#features">Features</a>
+  &nbsp;|&nbsp;
+  <a href="#latest-polish">Latest polish</a>
+  &nbsp;|&nbsp;
+  <a href="#getting-started">Getting started</a>
+</p>
 
-[**Try the beta**](https://network.vexory.xyz/)
-
-</div>
+<img src=".github/assets/banner.png" alt="Vexory - project-first social network for builders" width="100%" />
 
 ---
 
 ## Beta notice
 
-> **Vexory is in active development.** This is an early public beta: features
-> change quickly, edge cases exist, and you may run into bugs. Feedback and bug
-> reports are welcome in [Issues](../../issues).
+Vexory is in active public beta. The product is moving quickly, behavior can
+change between releases, and bug reports are welcome in [Issues](../../issues).
 
----
+## Why Vexory
 
-## What is Vexory?
+Most social networks are profile-first: people post, feeds get noisy, and real
+work disappears between updates. Vexory flips the model.
 
-Most social networks put the person first and the noise follows. Vexory flips
-it: **the Project is the core entity.** Every project gets its own page with a
-build log, roadmap, team and open roles, and everything in the feed derives
-from real product work instead of engagement bait.
+**The project is the core entity.** Each project gets a page with a build log,
+roadmap, team, open roles, launch history and progress signals. The social layer
+comes from actual product work, not engagement bait.
 
-**Signal, not noise.**
+<table>
+  <tr>
+    <td width="33%">
+      <strong>Project-first</strong><br/>
+      Profiles are built from what people are shipping, not from static resumes.
+    </td>
+    <td width="33%">
+      <strong>Signal over noise</strong><br/>
+      Feeds, badges and discovery are tied to launches, milestones and real updates.
+    </td>
+    <td width="33%">
+      <strong>Teams form faster</strong><br/>
+      Open roles, applications, invites and matching live close to the project.
+    </td>
+  </tr>
+</table>
 
-<div align="center">
-<img src=".github/assets/screenshot-landing.png" alt="Vexory landing page" width="90%" />
-</div>
+<p align="center">
+  <img src=".github/assets/screenshot-landing.png" alt="Vexory landing page" width="92%" />
+</p>
 
-## What's new
+## Latest polish
 
-Recent beta updates sharpen both the product surface and the visual system:
+The current beta pass focuses on making the product feel sharper, more tactile
+and more premium without changing the underlying flow.
 
-- **Liquid Glass polish** - interactive project cards, feature blocks and metric
-  panels now lift subtly on hover with stronger glass borders and violet depth.
-- **Gradient emphasis** - hero highlights and discovery headlines now use a
-  refined white-to-violet text treatment instead of flat accent color.
-- **More tactile actions** - primary buttons, auth tabs and secondary CTAs now
-  include press feedback for a more responsive feel.
-- **Navigation clarity** - sidebar and command palette active states now use a
-  left-edge indicator, smoother transitions and better contrast.
-- **Progress detail** - project status tracks now show completed steps with a
-  violet gradient line and soft glow.
-- **Loading polish** - skeleton states now shimmer with a quieter violet-tinted
-  pass that better matches the dark interface.
+| Area | What changed |
+| --- | --- |
+| Liquid Glass UI | Interactive cards, feature blocks and metric panels now lift on hover with stronger glass borders and violet depth. |
+| Hero emphasis | Landing and discovery headlines use a refined white-to-violet gradient instead of flat accent color. |
+| Action feedback | Primary buttons, auth tabs and secondary CTAs now include subtle press states. |
+| Navigation | Sidebar and command palette active states now use a left-edge indicator, smoother motion and clearer contrast. |
+| Progress | Project status tracks now render completed steps with a violet gradient line and soft glow. |
+| Loading states | Skeleton shimmer now uses a quieter violet-tinted pass that matches the dark interface. |
 
 ## Features
 
@@ -64,29 +97,28 @@ Recent beta updates sharpen both the product surface and the visual system:
 
 - **Project pages** - build log, roadmap, team, open roles, posts and trust
   signals in one place.
-- **Activity heatmap** - GitHub-style 12-week graph of shipping cadence with
-  streaks.
-- **Journey timeline** - IDEA -> BUILDING -> MVP -> LAUNCHED track plus dated
+- **Activity heatmap** - a 12-week graph of shipping cadence with streaks.
+- **Journey timeline** - IDEA -> BUILDING -> MVP -> LAUNCHED with dated
   milestone history.
 - **Build proof** - attach commits, demos and deploy links to updates.
-- **Momentum badges** - earned by real activity: *Shipping weekly*, *Recently
-  launched*, *Hiring now*, *Team forming*.
-- **Founder notes** - why a project exists, what changed, and what the team
-  learned.
+- **Momentum badges** - earned by real activity: Shipping weekly, Recently
+  launched, Hiring now and Team forming.
+- **Founder notes** - share why the project exists, what changed and what the
+  team learned.
 - **Launch pages** - public, shareable pages when a project ships.
 
-### People & teams
+### People and teams
 
-- **Auto-portfolio profiles** - "Currently building" and "Launched" assemble
+- **Auto-portfolio profiles** - Currently building and Launched sections assemble
   themselves from a builder's projects.
-- **Open roles & applications** - equity, paid, contract or volunteer roles,
+- **Open roles and applications** - equity, paid, contract or volunteer roles
   with fast application flows.
 - **Team invites** - invite by email or username with role titles and
   permissions.
 - **Team chat** - a private room per project.
 - **Matches** - teammate recommendations based on skills and interests.
 
-### Social
+### Social layer
 
 - **Smart feed** - Global, Following, Posts, Launches, Hiring, Milestones and
   Trending tabs.
@@ -94,44 +126,44 @@ Recent beta updates sharpen both the product surface and the visual system:
   roles or jump to pages.
 - **Universal search** - projects, builders, open roles and posts with type
   filters.
-- **Likes, comments, bookmarks and follows** - for people and projects.
+- **Reactions and follows** - likes, comments, bookmarks and follows for people
+  and projects.
 - **Notifications** - follows, applications, comments and invites.
 
-<div align="center">
-<img src=".github/assets/screenshot-project.png" alt="Vexory project page" width="90%" />
-</div>
+<p align="center">
+  <img src=".github/assets/screenshot-project.png" alt="Vexory project page" width="92%" />
+</p>
 
-## Design
+## Design system
 
-Vexory uses a custom **Purple Liquid Glass** dark UI system: a deep navy-black
-canvas, violet primary actions, glass as a material for elevated layers,
-cursor-tracked sheen, ambient light fields and film-grain dithering.
+Vexory uses a custom **Purple Liquid Glass** interface: deep navy-black canvas,
+violet primary actions, glass as an elevated material, cursor-tracked sheen,
+ambient light fields and subtle film-grain dithering.
 
-The latest interaction pass makes the interface feel more tactile without
-changing the product hierarchy: cards rise, buttons press, active navigation is
-clearer, and progress elements carry more visual momentum.
+The design goal is a focused night-time workspace: calm by default, luminous
+where action and status matter.
 
 ## Tech stack
 
-| Layer      | Tech                                                                  |
-| ---------- | --------------------------------------------------------------------- |
-| Framework  | [Next.js 16](https://nextjs.org/) App Router, Server Components, Server Actions |
-| Language   | TypeScript                                                            |
-| Database   | PostgreSQL + [Prisma 7](https://www.prisma.io/)                       |
-| Auth       | [Auth.js v5](https://authjs.dev/) credentials + OAuth-ready           |
-| Styling    | [Tailwind CSS 4](https://tailwindcss.com/) + custom design tokens     |
-| Validation | [Zod 4](https://zod.dev/)                                             |
-| Icons      | [Lucide](https://lucide.dev/)                                         |
-| Deploy     | Docker + docker-compose                                               |
+| Layer | Tech |
+| --- | --- |
+| Framework | [Next.js 16](https://nextjs.org/) with App Router, Server Components and Server Actions |
+| Language | TypeScript |
+| Database | PostgreSQL + [Prisma 7](https://www.prisma.io/) |
+| Auth | [Auth.js v5](https://authjs.dev/) with credentials and OAuth-ready plumbing |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com/) + custom design tokens |
+| Validation | [Zod 4](https://zod.dev/) |
+| Icons | [Lucide](https://lucide.dev/) |
+| Deploy | Docker + docker-compose |
 
 ## Getting started
 
-### Prerequisites
+### Requirements
 
 - Node.js 20+
 - Docker for PostgreSQL, or any PostgreSQL 16 instance
 
-### Setup
+### Local setup
 
 ```bash
 git clone https://github.com/rasvetovvv/vexory.git
@@ -162,10 +194,9 @@ docker compose up -d --build
 
 ## Author
 
-**Vadim** - [@rasvetovvv](https://github.com/rasvetovvv) · vadim.mos.dev@gmail.com
+**Vadim** - [@rasvetovvv](https://github.com/rasvetovvv) - vadim.mos.dev@gmail.com
 
-Building Vexory in public. Follow the progress at
-[network.vexory.xyz](https://network.vexory.xyz/).
+Building Vexory in public at [network.vexory.xyz](https://network.vexory.xyz/).
 
 ## License
 
@@ -175,6 +206,6 @@ permission.
 
 ---
 
-<div align="center">
-<sub>Star the repo if you like where Vexory is going.</sub>
-</div>
+<p align="center">
+  <sub>Star the repo if you like where Vexory is going.</sub>
+</p>
