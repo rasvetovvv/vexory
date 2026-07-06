@@ -44,7 +44,7 @@ export function StatusTrack({ status }: { status: string }) {
             {i < stages.length - 1 && (
               <span
                 className={`mx-1.5 mb-5 h-px flex-1 ${
-                  i < current ? "bg-primary/50" : "bg-border"
+                  i < current ? "bg-gradient-to-r from-primary to-primary-hover shadow-[0_0_6px_rgba(124,92,255,0.4)]" : "bg-border"
                 }`}
                 aria-hidden
               />

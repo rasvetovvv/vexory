@@ -80,7 +80,7 @@ export default async function ExplorePage() {
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px] lg:items-end">
           <div>
             <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight md:text-6xl">
-              Discover what builders are shipping <span className="text-accent">right now</span>
+              Discover what builders are shipping <span className="text-gradient-primary">right now</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
               Browse launches, open roles and progress signals before joining. Vexory turns every project into a living public profile.
@@ -110,7 +110,7 @@ export default async function ExplorePage() {
           {projects.map((project) => {
             const score = getProjectScore(project);
             return (
-              <Link key={project.id} href={`/showcase/${project.slug}`} className="glass group rounded-xl p-5 transition-colors hover:border-border-primary">
+              <Link key={project.id} href={`/showcase/${project.slug}`} className="glass glass-card-interactive group rounded-xl p-5 transition-colors hover:border-border-primary">
                 <div className="flex items-start justify-between gap-3">
                   <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-muted text-lg font-bold text-accent">{project.name[0]?.toUpperCase()}</span>
                   <StatusBadge status={project.status} />
@@ -132,7 +132,7 @@ export default async function ExplorePage() {
       </section>
 
       <section className="grid gap-5 py-14 lg:grid-cols-2">
-        <div className="glass rounded-xl p-5">
+        <div className="glass glass-card-interactive rounded-xl p-5">
           <h2 className="text-lg font-semibold">Recent launches</h2>
           <ul className="mt-4 flex flex-col gap-3">
             {launches.map((event) => (
@@ -146,7 +146,7 @@ export default async function ExplorePage() {
           </ul>
         </div>
 
-        <div className="glass rounded-xl p-5">
+        <div className="glass glass-card-interactive rounded-xl p-5">
           <h2 className="text-lg font-semibold">Teams hiring</h2>
           <ul className="mt-4 flex flex-col gap-3">
             {roles.map((role) => (

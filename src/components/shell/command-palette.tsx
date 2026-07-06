@@ -29,7 +29,7 @@ export function SearchTrigger() {
     <button
       type="button"
       onClick={openCommandPalette}
-      className="flex w-full max-w-md items-center gap-2.5 rounded-full border border-border bg-surface/60 py-2 pl-3.5 pr-3 text-sm text-faint transition-colors hover:border-border-strong"
+      className="flex w-full max-w-md items-center gap-2.5 rounded-full border border-border bg-surface/40 hover:bg-surface/80 py-2 pl-3.5 pr-3 text-sm text-faint transition-all duration-200 hover:border-border-primary hover:shadow-[0_0_12px_rgba(124,92,255,0.08)] active:scale-[0.98]"
     >
       <Search size={16} className="shrink-0 text-muted" />
       <span className="flex-1 truncate text-left">
@@ -369,8 +369,10 @@ export function CommandPalette() {
                   aria-selected={i === active}
                   onClick={() => go(item.href)}
                   onMouseMove={() => setActive(i)}
-                  className={`flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors ${
-                    i === active ? "bg-primary-muted" : ""
+                  className={`flex w-full items-center gap-3 rounded-r-md py-2 pr-2.5 text-left transition-all duration-150 border-l-2 ${
+                    i === active
+                      ? "bg-primary-muted border-primary pl-2.5 text-foreground"
+                      : "border-transparent pl-2.5 text-muted hover:text-foreground"
                   }`}
                 >
                   {item.render}

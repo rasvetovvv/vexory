@@ -50,9 +50,9 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+      className={`flex-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.96] ${
         active
-          ? "bg-primary-muted text-accent"
+          ? "bg-primary-muted text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_2px_8px_rgba(124,92,255,0.15)]"
           : "text-muted hover:text-foreground"
       }`}
     >

@@ -47,7 +47,7 @@ export default async function Home() {
         </p>
         <h1 className="mt-6 max-w-2xl text-4xl font-bold leading-tight tracking-tight md:text-6xl">
           Where builders{" "}
-          <span className="text-accent">build together</span>
+          <span className="text-gradient-primary">build together</span>
         </h1>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-muted md:text-lg">
           Not another feed of hot takes. Your profile is your projects: what
@@ -56,13 +56,13 @@ export default async function Home() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/auth"
-            className="rounded-md btn-liquid px-6 py-3 text-sm font-semibold text-on-primary"
+            className="rounded-md btn-liquid px-6 py-3 text-sm font-semibold text-on-primary transition-transform duration-100 active:scale-[0.98]"
           >
             Start building
           </Link>
           <Link
             href="/explore"
-            className="rounded-md border border-border bg-glass px-6 py-3 text-sm font-semibold transition-colors hover:bg-glass-hover"
+            className="rounded-md border border-border bg-glass px-6 py-3 text-sm font-semibold transition-all hover:bg-glass-hover active:scale-[0.98]"
           >
             Explore projects
           </Link>
@@ -140,7 +140,7 @@ export default async function Home() {
 
 function LiveMetric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="glass rounded-xl p-4 text-center">
+    <div className="glass glass-card-interactive rounded-xl p-4 text-center">
       <p className="font-mono text-2xl font-bold text-accent">{value}</p>
       <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-faint">{label}</p>
     </div>
@@ -157,7 +157,7 @@ function Feature({
   text: string;
 }) {
   return (
-    <div className="glass rounded-xl p-5">
+    <div className="glass glass-card-interactive rounded-xl p-5">
       <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-muted text-accent">
         {icon}
       </span>
